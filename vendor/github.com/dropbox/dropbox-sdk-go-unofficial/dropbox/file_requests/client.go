@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package users
+package file_requests
 
 import (
 	"bytes"
@@ -31,27 +31,27 @@ import (
 
 // Client interface describes all routes in this namespace
 type Client interface {
-	// GetAccount : Get information about a user's account.
-	GetAccount(arg *GetAccountArg) (res *BasicAccount, err error)
-	// GetAccountBatch : Get information about multiple user accounts.  At most
-	// 300 accounts may be queried per request.
-	GetAccountBatch(arg *GetAccountBatchArg) (res []*BasicAccount, err error)
-	// GetCurrentAccount : Get information about the current user's account.
-	GetCurrentAccount() (res *FullAccount, err error)
-	// GetSpaceUsage : Get the space usage information for the current user's
-	// account.
-	GetSpaceUsage() (res *SpaceUsage, err error)
+	// Create : Creates a file request for this user.
+	Create(arg *CreateFileRequestArgs) (res *FileRequest, err error)
+	// Get : Returns the specified file request.
+	Get(arg *GetFileRequestArgs) (res *FileRequest, err error)
+	// List : Returns a list of file requests owned by this user. For apps with
+	// the app folder permission, this will only return file requests with
+	// destinations in the app folder.
+	List() (res *ListFileRequestsResult, err error)
+	// Update : Update a file request.
+	Update(arg *UpdateFileRequestArgs) (res *FileRequest, err error)
 }
 
 type apiImpl dropbox.Context
 
-//GetAccountAPIError is an error-wrapper for the get_account route
-type GetAccountAPIError struct {
+//CreateAPIError is an error-wrapper for the create route
+type CreateAPIError struct {
 	dropbox.APIError
-	EndpointError *GetAccountError `json:"error"`
+	EndpointError *CreateFileRequestError `json:"error"`
 }
 
-func (dbx *apiImpl) GetAccount(arg *GetAccountArg) (res *BasicAccount, err error) {
+func (dbx *apiImpl) Create(arg *CreateFileRequestArgs) (res *FileRequest, err error) {
 	cli := dbx.Client
 
 	dbx.Config.LogDebug("arg: %v", arg)
@@ -67,7 +67,7 @@ func (dbx *apiImpl) GetAccount(arg *GetAccountArg) (res *BasicAccount, err error
 		headers["Dropbox-API-Select-User"] = dbx.Config.AsMemberID
 	}
 
-	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "users", "get_account", headers, bytes.NewReader(b))
+	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "file_requests", "create", headers, bytes.NewReader(b))
 	if err != nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (dbx *apiImpl) GetAccount(arg *GetAccountArg) (res *BasicAccount, err error
 		return
 	}
 	if resp.StatusCode == http.StatusConflict {
-		var apiError GetAccountAPIError
+		var apiError CreateAPIError
 		err = json.Unmarshal(body, &apiError)
 		if err != nil {
 			return
@@ -117,13 +117,13 @@ func (dbx *apiImpl) GetAccount(arg *GetAccountArg) (res *BasicAccount, err error
 	return
 }
 
-//GetAccountBatchAPIError is an error-wrapper for the get_account_batch route
-type GetAccountBatchAPIError struct {
+//GetAPIError is an error-wrapper for the get route
+type GetAPIError struct {
 	dropbox.APIError
-	EndpointError *GetAccountBatchError `json:"error"`
+	EndpointError *GetFileRequestError `json:"error"`
 }
 
-func (dbx *apiImpl) GetAccountBatch(arg *GetAccountBatchArg) (res []*BasicAccount, err error) {
+func (dbx *apiImpl) Get(arg *GetFileRequestArgs) (res *FileRequest, err error) {
 	cli := dbx.Client
 
 	dbx.Config.LogDebug("arg: %v", arg)
@@ -139,7 +139,7 @@ func (dbx *apiImpl) GetAccountBatch(arg *GetAccountBatchArg) (res []*BasicAccoun
 		headers["Dropbox-API-Select-User"] = dbx.Config.AsMemberID
 	}
 
-	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "users", "get_account_batch", headers, bytes.NewReader(b))
+	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "file_requests", "get", headers, bytes.NewReader(b))
 	if err != nil {
 		return
 	}
@@ -167,7 +167,7 @@ func (dbx *apiImpl) GetAccountBatch(arg *GetAccountBatchArg) (res []*BasicAccoun
 		return
 	}
 	if resp.StatusCode == http.StatusConflict {
-		var apiError GetAccountBatchAPIError
+		var apiError GetAPIError
 		err = json.Unmarshal(body, &apiError)
 		if err != nil {
 			return
@@ -189,13 +189,13 @@ func (dbx *apiImpl) GetAccountBatch(arg *GetAccountBatchArg) (res []*BasicAccoun
 	return
 }
 
-//GetCurrentAccountAPIError is an error-wrapper for the get_current_account route
-type GetCurrentAccountAPIError struct {
+//ListAPIError is an error-wrapper for the list route
+type ListAPIError struct {
 	dropbox.APIError
-	EndpointError struct{} `json:"error"`
+	EndpointError *ListFileRequestsError `json:"error"`
 }
 
-func (dbx *apiImpl) GetCurrentAccount() (res *FullAccount, err error) {
+func (dbx *apiImpl) List() (res *ListFileRequestsResult, err error) {
 	cli := dbx.Client
 
 	headers := map[string]string{}
@@ -203,7 +203,7 @@ func (dbx *apiImpl) GetCurrentAccount() (res *FullAccount, err error) {
 		headers["Dropbox-API-Select-User"] = dbx.Config.AsMemberID
 	}
 
-	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "users", "get_current_account", headers, nil)
+	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "file_requests", "list", headers, nil)
 	if err != nil {
 		return
 	}
@@ -231,7 +231,7 @@ func (dbx *apiImpl) GetCurrentAccount() (res *FullAccount, err error) {
 		return
 	}
 	if resp.StatusCode == http.StatusConflict {
-		var apiError GetCurrentAccountAPIError
+		var apiError ListAPIError
 		err = json.Unmarshal(body, &apiError)
 		if err != nil {
 			return
@@ -253,21 +253,29 @@ func (dbx *apiImpl) GetCurrentAccount() (res *FullAccount, err error) {
 	return
 }
 
-//GetSpaceUsageAPIError is an error-wrapper for the get_space_usage route
-type GetSpaceUsageAPIError struct {
+//UpdateAPIError is an error-wrapper for the update route
+type UpdateAPIError struct {
 	dropbox.APIError
-	EndpointError struct{} `json:"error"`
+	EndpointError *UpdateFileRequestError `json:"error"`
 }
 
-func (dbx *apiImpl) GetSpaceUsage() (res *SpaceUsage, err error) {
+func (dbx *apiImpl) Update(arg *UpdateFileRequestArgs) (res *FileRequest, err error) {
 	cli := dbx.Client
 
-	headers := map[string]string{}
+	dbx.Config.LogDebug("arg: %v", arg)
+	b, err := json.Marshal(arg)
+	if err != nil {
+		return
+	}
+
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
 	if dbx.Config.AsMemberID != "" {
 		headers["Dropbox-API-Select-User"] = dbx.Config.AsMemberID
 	}
 
-	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "users", "get_space_usage", headers, nil)
+	req, err := (*dropbox.Context)(dbx).NewRequest("api", "rpc", true, "file_requests", "update", headers, bytes.NewReader(b))
 	if err != nil {
 		return
 	}
@@ -295,7 +303,7 @@ func (dbx *apiImpl) GetSpaceUsage() (res *SpaceUsage, err error) {
 		return
 	}
 	if resp.StatusCode == http.StatusConflict {
-		var apiError GetSpaceUsageAPIError
+		var apiError UpdateAPIError
 		err = json.Unmarshal(body, &apiError)
 		if err != nil {
 			return

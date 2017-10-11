@@ -552,9 +552,9 @@ func (u *CreateSharedLinkError) UnmarshalJSON(body []byte) error {
 
 // CreateSharedLinkWithSettingsArg : has no documentation (yet)
 type CreateSharedLinkWithSettingsArg struct {
-	// Path : The path to be shared by the shared link
+	// Path : The path to be shared by the shared link.
 	Path string `json:"path"`
-	// Settings : The requested settings for the newly created shared link
+	// Settings : The requested settings for the newly created shared link.
 	Settings *SharedLinkSettings `json:"settings,omitempty"`
 }
 
@@ -570,7 +570,7 @@ type CreateSharedLinkWithSettingsError struct {
 	dropbox.Tagged
 	// Path : has no documentation (yet)
 	Path *files.LookupError `json:"path,omitempty"`
-	// SettingsError : There is an error with the given settings
+	// SettingsError : There is an error with the given settings.
 	SettingsError *SharedLinkSettingsError `json:"settings_error,omitempty"`
 }
 
@@ -589,7 +589,7 @@ func (u *CreateSharedLinkWithSettingsError) UnmarshalJSON(body []byte) error {
 		dropbox.Tagged
 		// Path : has no documentation (yet)
 		Path json.RawMessage `json:"path,omitempty"`
-		// SettingsError : There is an error with the given settings
+		// SettingsError : There is an error with the given settings.
 		SettingsError json.RawMessage `json:"settings_error,omitempty"`
 	}
 	var w wrap
@@ -741,7 +741,7 @@ func (u *FileErrorResult) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SharedLinkMetadata : The metadata of a shared link
+// SharedLinkMetadata : The metadata of a shared link.
 type SharedLinkMetadata struct {
 	// Url : URL of the shared link.
 	Url string `json:"url"`
@@ -847,7 +847,7 @@ func IsSharedLinkMetadataFromJSON(data []byte) (IsSharedLinkMetadata, error) {
 	return nil, nil
 }
 
-// FileLinkMetadata : The metadata of a file shared link
+// FileLinkMetadata : The metadata of a file shared link.
 type FileLinkMetadata struct {
 	SharedLinkMetadata
 	// ClientModified : The modification time set by the desktop client when the
@@ -1092,7 +1092,7 @@ const (
 	FolderActionOther                 = "other"
 )
 
-// FolderLinkMetadata : The metadata of a folder shared link
+// FolderLinkMetadata : The metadata of a folder shared link.
 type FolderLinkMetadata struct {
 	SharedLinkMetadata
 }
@@ -1820,7 +1820,7 @@ type LinkPermissions struct {
 	// after considering these policies, can be found in `resolved_visibility`.
 	// This is shown only if the caller is the link's owner.
 	RequestedVisibility *RequestedVisibility `json:"requested_visibility,omitempty"`
-	// CanRevoke : Whether the caller can revoke the shared link
+	// CanRevoke : Whether the caller can revoke the shared link.
 	CanRevoke bool `json:"can_revoke"`
 	// RevokeFailureReason : The failure reason for revoking the link. This
 	// field will only be present if the `can_revoke` is false.
@@ -2510,7 +2510,7 @@ func (u *MemberSelector) UnmarshalJSON(body []byte) error {
 
 // ModifySharedLinkSettingsArgs : has no documentation (yet)
 type ModifySharedLinkSettingsArgs struct {
-	// Url : URL of the shared link to change its settings
+	// Url : URL of the shared link to change its settings.
 	Url string `json:"url"`
 	// Settings : Set of settings for the shared link.
 	Settings *SharedLinkSettings `json:"settings"`
@@ -2531,7 +2531,7 @@ func NewModifySharedLinkSettingsArgs(Url string, Settings *SharedLinkSettings) *
 // ModifySharedLinkSettingsError : has no documentation (yet)
 type ModifySharedLinkSettingsError struct {
 	dropbox.Tagged
-	// SettingsError : There is an error with the given settings
+	// SettingsError : There is an error with the given settings.
 	SettingsError *SharedLinkSettingsError `json:"settings_error,omitempty"`
 }
 
@@ -2545,7 +2545,7 @@ const (
 func (u *ModifySharedLinkSettingsError) UnmarshalJSON(body []byte) error {
 	type wrap struct {
 		dropbox.Tagged
-		// SettingsError : There is an error with the given settings
+		// SettingsError : There is an error with the given settings.
 		SettingsError json.RawMessage `json:"settings_error,omitempty"`
 	}
 	var w wrap
@@ -2706,6 +2706,7 @@ const (
 	PermissionDeniedReasonUserAccountType            = "user_account_type"
 	PermissionDeniedReasonUserNotOnTeam              = "user_not_on_team"
 	PermissionDeniedReasonFolderIsInsideSharedFolder = "folder_is_inside_shared_folder"
+	PermissionDeniedReasonRestrictedByParentFolder   = "restricted_by_parent_folder"
 	PermissionDeniedReasonInsufficientPlan           = "insufficient_plan"
 	PermissionDeniedReasonOther                      = "other"
 )
@@ -3367,7 +3368,7 @@ func NewSharedContentLinkMetadata(AudienceOptions []*LinkAudience, CurrentAudien
 // part of the results for `listFileMembersBatch`.
 type SharedFileMembers struct {
 	// Users : The list of user members of the shared file.
-	Users []*UserMembershipInfo `json:"users"`
+	Users []*UserFileMembershipInfo `json:"users"`
 	// Groups : The list of group members of the shared file.
 	Groups []*GroupMembershipInfo `json:"groups"`
 	// Invitees : The list of invited members of a file, but have not logged in
@@ -3380,7 +3381,7 @@ type SharedFileMembers struct {
 }
 
 // NewSharedFileMembers returns a new SharedFileMembers instance
-func NewSharedFileMembers(Users []*UserMembershipInfo, Groups []*GroupMembershipInfo, Invitees []*InviteeMembershipInfo) *SharedFileMembers {
+func NewSharedFileMembers(Users []*UserFileMembershipInfo, Groups []*GroupMembershipInfo, Invitees []*InviteeMembershipInfo) *SharedFileMembers {
 	s := new(SharedFileMembers)
 	s.Users = Users
 	s.Groups = Groups
@@ -3683,7 +3684,7 @@ const (
 
 // TeamMemberInfo : Information about a team member.
 type TeamMemberInfo struct {
-	// TeamInfo : Information about the member's team
+	// TeamInfo : Information about the member's team.
 	TeamInfo *users.Team `json:"team_info"`
 	// DisplayName : The display name of the user.
 	DisplayName string `json:"display_name"`
@@ -4105,6 +4106,41 @@ func (u *UpdateFolderPolicyError) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// UserMembershipInfo : The information about a user member of the shared
+// content.
+type UserMembershipInfo struct {
+	MembershipInfo
+	// User : The account information for the membership user.
+	User *UserInfo `json:"user"`
+}
+
+// NewUserMembershipInfo returns a new UserMembershipInfo instance
+func NewUserMembershipInfo(AccessType *AccessLevel, User *UserInfo) *UserMembershipInfo {
+	s := new(UserMembershipInfo)
+	s.AccessType = AccessType
+	s.User = User
+	s.IsInherited = false
+	return s
+}
+
+// UserFileMembershipInfo : The information about a user member of the shared
+// content with an appended last seen timestamp.
+type UserFileMembershipInfo struct {
+	UserMembershipInfo
+	// TimeLastSeen : The UTC timestamp of when the user has last seen the
+	// content, if they have.
+	TimeLastSeen time.Time `json:"time_last_seen,omitempty"`
+}
+
+// NewUserFileMembershipInfo returns a new UserFileMembershipInfo instance
+func NewUserFileMembershipInfo(AccessType *AccessLevel, User *UserInfo) *UserFileMembershipInfo {
+	s := new(UserFileMembershipInfo)
+	s.AccessType = AccessType
+	s.User = User
+	s.IsInherited = false
+	return s
+}
+
 // UserInfo : Basic information about a user. Use `usersAccount` and
 // `usersAccountBatch` to obtain more detailed information.
 type UserInfo struct {
@@ -4122,23 +4158,6 @@ func NewUserInfo(AccountId string, SameTeam bool) *UserInfo {
 	s := new(UserInfo)
 	s.AccountId = AccountId
 	s.SameTeam = SameTeam
-	return s
-}
-
-// UserMembershipInfo : The information about a user member of the shared
-// content.
-type UserMembershipInfo struct {
-	MembershipInfo
-	// User : The account information for the membership user.
-	User *UserInfo `json:"user"`
-}
-
-// NewUserMembershipInfo returns a new UserMembershipInfo instance
-func NewUserMembershipInfo(AccessType *AccessLevel, User *UserInfo) *UserMembershipInfo {
-	s := new(UserMembershipInfo)
-	s.AccessType = AccessType
-	s.User = User
-	s.IsInherited = false
 	return s
 }
 

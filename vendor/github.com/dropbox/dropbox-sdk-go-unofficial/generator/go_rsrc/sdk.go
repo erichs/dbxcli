@@ -35,8 +35,8 @@ const (
 	hostAPI       = "api"
 	hostContent   = "content"
 	hostNotify    = "notify"
-	sdkVersion    = "3.1.0"
-	specVersion   = "97eb698"
+	sdkVersion    = "UNKNOWN SDK VERSION"
+	specVersion   = "UNKNOWN SPEC VERSION"
 )
 
 // Version returns the current SDK version and API Spec version
@@ -78,7 +78,7 @@ const (
 )
 
 func (l LogLevel) ShouldLog(v LogLevel) bool {
-	return l > v || l&v == v
+	return l > v || l & v == v
 }
 
 func (c *Config) doLog(l LogLevel, format string, v ...interface{}) {

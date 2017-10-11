@@ -18,20 +18,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package users_common : This namespace contains common data types used within
-// the users namespace.
-package users_common
+package sharing
 
-import "github.com/dropbox/dropbox-sdk-go-unofficial/dropbox"
+import "encoding/json"
 
-// AccountType : What type of account this user has.
-type AccountType struct {
-	dropbox.Tagged
+type listSharedLinksResult struct {
+	Links   []sharedLinkMetadataUnion `json:"links"`
+	HasMore bool                      `json:"has_more"`
+	Cursor  string                    `json:"cursor,omitempty"`
 }
 
-// Valid tag values for AccountType
-const (
-	AccountTypeBasic    = "basic"
-	AccountTypePro      = "pro"
-	AccountTypeBusiness = "business"
-)
+// UnmarshalJSON deserializes into a ListSharedLinksResult instance
+func (r *ListSharedLinksResult) UnmarshalJSON(b []byte) error {
+	var l listSharedLinksResult
+	if err := json.Unmarshal(b, &l); err != nil {
+		return err
+	}
+	r.Cursor = l.Cursor
+	r.HasMore = l.HasMore
+	r.Links = make([]IsSharedLinkMetadata, len(l.Links))
+	for i, e := range l.Links {
+		switch e.Tag {
+		case "file":
+			r.Links[i] = e.File
+		case "folder":
+			r.Links[i] = e.Folder
+		}
+	}
+	return nil
+}
